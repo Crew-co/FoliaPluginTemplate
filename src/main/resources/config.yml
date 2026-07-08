@@ -12,5 +12,5 @@ example:
   # Cooldown in seconds between uses of /example boom, per player.
   cooldown-seconds: 3
 
-# Check GitHub for a newer version on startup (async, read-only, non-blocking).
+# Check Modrinth for a newer version on startup (async, read-only, non-blocking).
 update-check: true

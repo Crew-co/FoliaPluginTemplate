@@ -43,7 +43,7 @@ Change these, then rebuild:
 | What | Where |
 |------|-------|
 | Plugin name / version / group | `gradle.properties` (version/group) and the `bukkit { }` block in `build.gradle.kts` (display name) |
-| Java package (`com.crewco.foliatemplate`) | rename the folders under `src/main/kotlin/...` and update `main` in the `bukkit { }` block |
+| Java package (`com.example.foliatemplate`) | rename the folders under `src/main/kotlin/...` and update `main` in the `bukkit { }` block |
 | Minecraft / Folia version | `foliaApiVersion` in `gradle.properties` (the `runServer`/`runFolia` Minecraft version is derived from it automatically) |
 | Author, description, api-version | the `bukkit { }` block in `build.gradle.kts` |
 
@@ -55,7 +55,7 @@ There is no `plugin.yml` file to edit — plugin-yml generates it from the `bukk
 
 ```
 folia-template/
-├── .github/workflows/build.yml # CI: builds + tests on every push/PR
+├── .github/workflows/         # build.yml (CI) + release.yml (tag → release)
 ├── .editorconfig               # shared formatting rules
 ├── build.gradle.kts            # deps, toolchain, shadow jar, plugin.yml, run tasks
 ├── settings.gradle.kts         # project name
@@ -276,6 +276,15 @@ player.sendMessage(plugin.messages.component("welcome", "player" to player.name)
 ## Testing & CI
 
 Pure logic (cooldowns, version comparison) is covered by JUnit 5 tests in `src/test`; run them with `./gradlew test` (they also run as part of `build`). Server-dependent behaviour isn't unit-tested here — MockBukkit doesn't model Folia's regionized scheduling, so the honest place to exercise that is a real server via `runFolia`. The GitHub Actions workflow (`.github/workflows/build.yml`) builds and tests on every push/PR and uploads the jar as an artifact, so forks get a green-check gate for free.
+
+**Publishing a release.** `.github/workflows/release.yml` runs when you push a `v*` tag: it builds (tests included), then creates a GitHub Release with the jar attached and auto-generated notes.
+
+```bash
+git tag v1.2.0
+git push origin v1.2.0
+```
+
+The jar's version is taken from the tag (`v1.2.0` → `folia-template-1.2.0.jar`), so you don't have to bump `gradle.properties` first — though you may still want to for local builds. Nothing extra to configure: it uses the built-in `GITHUB_TOKEN`. This also feeds the update checker, which compares against your latest GitHub release tag.
 
 ## Optional next steps (deliberately not pre-wired)
 
