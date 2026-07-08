@@ -1,19 +1,15 @@
-name: Release
+name: Build
 
-# Publishes a GitHub Release with the built jar whenever you push a version tag.
-# Usage:
-#   git tag v1.2.0
-#   git push origin v1.2.0
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main, master ]
+  pull_request:
 
 permissions:
-  contents: write   # required to create the release and upload the jar
+  contents: read
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,17 +23,14 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # Build with the version taken from the tag (v1.2.0 -> 1.2.0) so the jar
-      # filename matches the release, even if gradle.properties wasn't bumped.
-      # `build` also runs the tests, so a failing build won't be released.
-      - name: Build release jar
+      - name: Build & test
         run: |
           chmod +x ./gradlew
-          ./gradlew build --no-daemon -Pversion=${GITHUB_REF_NAME#v}
+          ./gradlew build --no-daemon
 
-      - name: Publish release
-        uses: softprops/action-gh-release@v2
+      - name: Upload plugin jar
+        uses: actions/upload-artifact@v4
         with:
-          files: build/libs/*.jar
-          generate_release_notes: true      # auto changelog from commits/PRs
-          fail_on_unmatched_files: true     # error out if the jar is missing
+          name: plugin-jar
+          path: build/libs/*.jar
+          if-no-files-found: error

@@ -1,0 +1,58 @@
+name: Release
+
+# Publishes a GitHub Release when you push to main/master with a NEW version.
+# Bump `version` in gradle.properties, commit, and push -> a release with the
+# jar is created (tagged v<version>). Push anything else and this does nothing,
+# so it never spams releases or fails on a duplicate tag.
+on:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write   # required to create the tag, release, and upload the jar
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version and check for an existing release
+        id: check
+        run: |
+          VERSION="$(grep '^version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::v$VERSION already released — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::New version v$VERSION — building release."
+          fi
+
+      - name: Set up JDK 21
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        if: steps.check.outputs.exists == 'false'
+        uses: gradle/actions/setup-gradle@v4
+
+      # `build` runs the tests too, so a failing build won't be released.
+      - name: Build release jar
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build --no-daemon
+
+      - name: Publish release
+        if: steps.check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.check.outputs.version }}   # created at this commit
+          files: build/libs/*.jar
+          generate_release_notes: true                    # auto changelog
+          fail_on_unmatched_files: true                   # error if jar missing

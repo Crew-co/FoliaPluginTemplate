@@ -277,14 +277,15 @@ player.sendMessage(plugin.messages.component("welcome", "player" to player.name)
 
 Pure logic (cooldowns, version comparison) is covered by JUnit 5 tests in `src/test`; run them with `./gradlew test` (they also run as part of `build`). Server-dependent behaviour isn't unit-tested here — MockBukkit doesn't model Folia's regionized scheduling, so the honest place to exercise that is a real server via `runFolia`. The GitHub Actions workflow (`.github/workflows/build.yml`) builds and tests on every push/PR and uploads the jar as an artifact, so forks get a green-check gate for free.
 
-**Publishing a release.** `.github/workflows/release.yml` runs when you push a `v*` tag: it builds (tests included), then creates a GitHub Release with the jar attached and auto-generated notes.
+**Publishing a release.** `.github/workflows/release.yml` runs on every push to `main`/`master`, but only publishes when the version is new: it reads `version` from `gradle.properties` and, if no `v<version>` tag exists yet, builds (tests included) and creates a GitHub Release tagged `v<version>` with the jar attached and auto-generated notes. So the release flow is just:
 
-```bash
-git tag v1.2.0
-git push origin v1.2.0
+```
+bump `version` in gradle.properties  ->  commit  ->  push
 ```
 
-The jar's version is taken from the tag (`v1.2.0` → `folia-template-1.2.0.jar`), so you don't have to bump `gradle.properties` first — though you may still want to for local builds. Nothing extra to configure: it uses the built-in `GITHUB_TOKEN`. This also feeds the update checker, which compares against your latest GitHub release tag.
+Pushes that don't change the version are a no-op (no duplicate-tag errors, no release spam). Nothing extra to configure — it uses the built-in `GITHUB_TOKEN`. This also feeds the update checker, which compares against your latest GitHub release tag.
+
+> Prefer to trigger releases by pushing a tag yourself instead? Swap the `on:` block for `on: { push: { tags: ['v*'] } }`, drop the version-exists check, and it'll release whatever tag you push. Or for nightly-style builds on every push, publish a single pre-release you overwrite each time.
 
 ## Optional next steps (deliberately not pre-wired)
 
