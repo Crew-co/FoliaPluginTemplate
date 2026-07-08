@@ -1,0 +1,7 @@
+# ---------------------------------------------------------------------------
+# User-facing messages. Values support MiniMessage formatting
+# (https://docs.advntr.dev/minimessage/format.html) and {placeholders}.
+# ---------------------------------------------------------------------------
+welcome: "<gray>Welcome, <white>{player}</white>! Try <yellow>/example menu</yellow>."
+reloaded: "<green>Reloaded config and messages.</green>"
+boom-cooldown: "<red>Wait <white>{seconds}s</white> before using that again.</red>"

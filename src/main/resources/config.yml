@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------------
+# Example configuration. Reload live with /example reload (no restart needed);
+# the file is read off-thread and swapped in atomically.
+# ---------------------------------------------------------------------------
+welcome:
+  # Send a message when a player joins.
+  enabled: true
+
+example:
+  # Power of the /example boom explosion (0.0 = cosmetic, no terrain damage).
+  explosion-power: 0.0
+  # Cooldown in seconds between uses of /example boom, per player.
+  cooldown-seconds: 3
+
+# Check GitHub for a newer version on startup (async, read-only, non-blocking).
+update-check: true
